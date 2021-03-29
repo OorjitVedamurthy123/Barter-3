@@ -1,5 +1,5 @@
 import React,{Component} from 'react';
-import {View, Text, TextInput, StyleSheet, TouchableOpacity} from 'react-native';
+import {View, Text, TextInput, StyleSheet, TouchableOpacity, Modal} from 'react-native';
 import db from '../config';
 import firebase from 'firebase';
 import { Alert } from 'react-native';
@@ -8,22 +8,44 @@ export default class SignupLoginScreen extends Component{
   constructor(){
     super();
     this.state={
-      username:'',
-      password:''
+
+      password:'',
+      firstName:'',
+      lastName:'',
+      mobileNumber:'',
+      userName:'',
+      address:'',
+      isVisible:false,
+      confirmPassword:''
     }
   }
 
-  userSignUp=(username, password)=>{
+  userSignUp=(username, password, confirmPassword)=>{
+    if(password !== confirmPassword){
+      return Alert.alert("Password doesn't match, Check your password")
+    }else{
     firebase.auth().createUserWithEmailAndPassword(username,password)
     .then((response)=>{
-      return Alert.alert("User added successfully")
+      db.collection("users").add({
+        first_name:this.state.firstName,
+        last_name:this.state.lastName,
+        mobile_number:this.state.mobileNumber,
+        username:this.state.userName,
+        address:this.state.address
+      })
+      return Alert.alert("User added successfully",
+      '',
+      [
+        {text:'OK', onPress:()=>this.setState({isVisible:false})}
+      ]
+      )
     })
     .catch(function(error){
       var errorCode = error.code;
       var errormessage = error.message
       return Alert.alert(errormessage)
     })
-  }
+  }}
   userLogin=(username, password)=>{
     firebase.auth().signInWithEmailAndPassword(username, password)
     .then((response)=>{
@@ -35,9 +57,117 @@ export default class SignupLoginScreen extends Component{
       return Alert.alert(errormessage)
     })
   }
+  showModal=()=>{
+    return(
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={this.state.isVisible}
+    >
+      <View style = {{flex:1, backgroundColor : '#ffffff', justifyContent : 'center'}}>
+        <View>
+          <Text style={styles.title2}>Registration Form</Text>
+      <TextInput
+        style={styles.formTextInput}
+        placeholder={"First Name"}
+        maxLength={8}
+        onChangeText={(text)=>{
+          this.setState({
+            firstName:text
+          })
+        }}
+        />
+        <TextInput
+        style={styles.formTextInput}
+        placeholder={"Last Name"}
+        maxLength={10}
+        onChangeText={(text)=>{
+          this.setState({
+            lastName:text
+          })
+        }}
+        />
+        <TextInput
+        style={styles.formTextInput}
+        placeholder={"User Name"}
+        onChangeText={(text)=>{
+          this.setState({
+            userName:text
+          })
+        }}
+        />
+        <TextInput
+        style={styles.formTextInput}
+        placeholder={"Address"}
+        maxLength={8}
+        onChangeText={(text)=>{
+          this.setState({
+            address:text
+          })
+        }}
+        />
+        <TextInput
+        style={styles.formTextInput}
+        placeholder={"Mobile Number"}
+        maxLength={10}
+        onChangeText={(text)=>{
+          this.setState({
+            mobileNumber:text
+          })
+        }}
+        />
+        <TextInput
+          style={styles.formTextInput}
+          placeholder ={"Password"}
+          secureTextEntry = {true}
+          onChangeText={(text)=>{
+            this.setState({
+              password: text
+            })
+          }}
+        /><TextInput
+          style={styles.formTextInput}
+          placeholder ={"Confirm Password"}
+          secureTextEntry = {true}
+          onChangeText={(text)=>{
+            this.setState({
+              confirmPassword: text
+            })
+          }}
+        />
+
+        </View>
+        <View>
+        <TouchableOpacity style={styles.registerButton}
+          onPress={()=>{
+            this.userSignUp(this.state.userName, this.state.password, this.state.confirmPassword)
+          }}
+        >
+          <Text style={styles.registerButtonText}>Register</Text>
+        </TouchableOpacity>
+        </View>
+        <View>
+        <TouchableOpacity style={styles.cancelButton}
+            onPress = {()=>{
+              this.setState({
+                isVisible:false
+              })
+            }}
+        >
+          <Text style={styles.registerButtonText}>Cancel</Text>
+        </TouchableOpacity>
+        </View>
+        </View>
+    </Modal>
+    )
+  }
   render(){
     return(
       <View style={styles.container}>
+        <View>
+         
+        </View>
+        {this.showModal()}
         <View>
           <Text style={styles.title}>Barter App</Text>
         </View>
@@ -64,14 +194,16 @@ export default class SignupLoginScreen extends Component{
           />
           <TouchableOpacity
             style={[styles.button,{marginBottom:20, marginTop:20}]}
-            onPress={()=>{this.userLogin(this.state.username, this.state.password)}}
+            onPress={()=>{this.userLogin(this.state.userName, this.state.password)}}
           >
           <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
             style={[styles.button]}
-            onPress={()=>{this.userSignUp(this.state.username, this.state.password)}}
+            onPress={()=>{this.setState({
+                isVisible:true
+            })}}
           >
           <Text style={styles.buttonText}>SignUp</Text>
           </TouchableOpacity>
@@ -101,7 +233,13 @@ const styles=StyleSheet.create({
     color : 'orange',
     textAlign:"center"
   },
-  
+  title2:{
+    fontSize:45,
+    fontWeight:'300',
+    paddingBottom:30,
+    color : 'orange',
+    textAlign:"center"
+  },
   loginBox:{
     width: 300,
     height: 40,
@@ -145,13 +283,14 @@ const styles=StyleSheet.create({
     padding:10
   },
   registerButton:{
-    width:200,
+    width:100,
     height:40,
     alignItems:'center',
     justifyContent:'center',
     borderWidth:1,
     borderRadius:10,
-    marginTop:30
+    marginTop:80,
+    marginLeft:50
   },
   registerButtonText:{
     color:'#ff5722',
@@ -159,11 +298,14 @@ const styles=StyleSheet.create({
     fontWeight:'bold'
   },
   cancelButton:{
-    width:200,
-    height:30,
-    justifyContent:'center',
+    width:100,
+    height:40,
     alignItems:'center',
-    marginTop:5,
+    justifyContent:'center',
+    borderWidth:1,
+    borderRadius:10,
+    marginTop:-40,
+    marginLeft:200
   },
  
   button:{
