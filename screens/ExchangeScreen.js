@@ -50,6 +50,7 @@ export default class ExchangeScreen extends Component{
                                 itemName:text
                             })
                         }}
+                        value={this.state.itemName}
                     >
 
                     </TextInput>
@@ -61,6 +62,7 @@ export default class ExchangeScreen extends Component{
                                 description:text
                             })
                         }}
+                        value={this.state.description}
                     >
 
                     </TextInput>
