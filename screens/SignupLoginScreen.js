@@ -1,8 +1,8 @@
 import React,{Component} from 'react';
-import {View, Text, TextInput, StyleSheet, TouchableOpacity, Modal} from 'react-native';
+import {View, Text, TextInput, StyleSheet, TouchableOpacity, Modal, Alert} from 'react-native';
 import db from '../config';
 import firebase from 'firebase';
-import { Alert } from 'react-native';
+ 
 
 export default class SignupLoginScreen extends Component{
   constructor(){
@@ -33,7 +33,7 @@ export default class SignupLoginScreen extends Component{
         username:this.state.userName,
         address:this.state.address
       })
-      return Alert.alert("User added successfully",
+      return Alert.alert("Added successfully",
       '',
       [
         {text:'OK', onPress:()=>this.setState({isVisible:false})}
@@ -49,7 +49,7 @@ export default class SignupLoginScreen extends Component{
   userLogin=(username, password)=>{
     firebase.auth().signInWithEmailAndPassword(username, password)
     .then((response)=>{
-      return Alert.alert("You have successfully logged in")
+      this.props.navigation.navigate("HomeScreen")
     })
     .catch(function(error){
       var errorCode = error.code;
@@ -89,7 +89,8 @@ export default class SignupLoginScreen extends Component{
         />
         <TextInput
         style={styles.formTextInput}
-        placeholder={"User Name"}
+        placeholder={"Email Id"}
+        keyboardType="email-address"
         onChangeText={(text)=>{
           this.setState({
             userName:text
@@ -99,7 +100,6 @@ export default class SignupLoginScreen extends Component{
         <TextInput
         style={styles.formTextInput}
         placeholder={"Address"}
-        maxLength={8}
         onChangeText={(text)=>{
           this.setState({
             address:text
@@ -109,6 +109,7 @@ export default class SignupLoginScreen extends Component{
         <TextInput
         style={styles.formTextInput}
         placeholder={"Mobile Number"}
+        keyboardType={'numeric'}
         maxLength={10}
         onChangeText={(text)=>{
           this.setState({
@@ -174,11 +175,11 @@ export default class SignupLoginScreen extends Component{
         <View>
           <TextInput
           style={styles.loginBox}
-          placeholder="Username or EmailId"
+          placeholder= "Email Id"
           keyboardType="email-address"
           onChangeText={(text)=>{
             this.setState({
-              username:text
+              userName:text
             })
           }}
           />
@@ -194,7 +195,9 @@ export default class SignupLoginScreen extends Component{
           />
           <TouchableOpacity
             style={[styles.button,{marginBottom:20, marginTop:20}]}
-            onPress={()=>{this.userLogin(this.state.userName, this.state.password)}}
+            onPress={()=>{
+              this.userLogin(this.state.userName, this.state.password)
+            }}
           >
           <Text style={styles.buttonText}>Login</Text>
           </TouchableOpacity>
